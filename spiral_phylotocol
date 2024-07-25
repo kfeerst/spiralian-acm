@@ -17,7 +17,7 @@
 
 #### 2.1 Construct a backbone tree using existing transcriptome-based phylogenies
 
-2.1.1 Use the paste.tree function to combine Struck 2011 and Varney 2022
+2.1.1 Use the paste.tree function to combine Struck 2011 and Varney 2022 [JOE: paste.tree function from what library/sotware?]
 ```
 tr1<-Struck_tree
 tr2<-Varney_tree
@@ -25,7 +25,7 @@ tr1$tip.label[1]<-"NA"
 tr2$root.edge<-0
 tr3<-paste.tree(tr1,tr2)
 ```
-2.1.2 Prune gastopods from the tree
+2.1.2 Prune gastopods from the tree [JOE: Did you use phyutility? What was the command?]
 ```
 
 ```
@@ -37,11 +37,11 @@ tr1$tip.label[1]<-"NA"
 tr2$root.edge<-0
 tr3<-paste.tree(tr1,tr2)
 ```
-2.1.4 Prune outgroups, keeping Bugula neritina
+2.1.4 Prune outgroups, keeping Bugula neritina [JOE: drop.tip function from what library/sotware?]
 ```
 prune_constraint <- drop.tip(rooted_tree, c(...)
 ```
-2.1.5 Root tree with Bugula neritina
+2.1.5 Root tree with Bugula neritina [JOE: root.phylo function from what library/sotware?]
 ```
 rooted_tree <- root.phylo(working_tree, "Bugula_neritina")
 ```
