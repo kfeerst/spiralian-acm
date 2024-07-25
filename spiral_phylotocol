@@ -19,7 +19,11 @@
 
 2.1.1 Use the paste.tree function to combine Struck 2011 and Varney 2022
 ```
-
+tr1<-Struck_tree
+tr2<-Varney_tree
+tr1$tip.label[1]<-"NA"
+tr2$root.edge<-0
+tr3<-paste.tree(tr1,tr2)
 ```
 2.1.2 Prune gastopods from the tree
 ```
@@ -27,15 +31,19 @@
 ```
 2.1.3 Use the paste.tree function again to add in Giribet 2019
 ```
-
+tr1<-SV_constraint
+tr2<-Giribet_tree
+tr1$tip.label[1]<-"NA"
+tr2$root.edge<-0
+tr3<-paste.tree(tr1,tr2)
 ```
 2.1.4 Prune outgroups, keeping Bugula neritina
 ```
-
+prune_constraint <- drop.tip(rooted_tree, c(...)
 ```
 2.1.5 Root tree with Bugula neritina
 ```
-
+rooted_tree <- root.phylo(working_tree, "Bugula_neritina")
 ```
 
 #### 2.2 Compile reference topology trees for both Annelids and Mollusks using Open Tree of Life 
@@ -56,13 +64,18 @@ tree <- tol_induced_subtree(ott_ids = ott_id(A_taxa))
 
 #### 2.3 Creating subtrees and determining branch length
 
-2.3.1 To determine the base of a given subtree, choose one branch that is in the constraint tree and therefore has a known branch length. The sub tree contains this branch and all matrix species that this is the closest known branch phylogenetically. The subtree topology is determined by the Open Tree of Life phylogeny which contains all constraint and matrix annelid species, or mollusk species.
+2.3.1 To determine the base of a given subtree, choose one branch that is in the constraint tree and therefore has a known branch length. 
+The sub tree contains this branch and all matrix species that this is the closest known branch phylogenetically. 
+The subtree topology is determined by the Open Tree of Life phylogeny which contains all constraint and matrix annelid species, or mollusk species.
 
-2.3.2	Divide the known branch length by the maximum number of branches it takes to move across the tree (from base to tip). Distribute branch lengths under the assumption of equality. 
+2.3.2	Divide the known branch length by the maximum number of branches it takes to move across the tree (from base to tip). 
+Distribute branch lengths under the assumption of equality. 
 
-2.3.3	In the case where the maximum number of branch lengths is 3, if a terminal branch is a sister in the same genus or family and is 2 branches from the base, the terminal branch will be n and the preceding branch will be 2n. If the species are not in the same family, terminal branches will be 2n and the preceding branch, n.
+2.3.3	In the case where the maximum number of branch lengths is 3, if a terminal branch is a sister in the same genus or family and is 2 branches from the base, the terminal branch will be n and the preceding branch will be 2n. 
+If the species are not in the same family, terminal branches will be 2n and the preceding branch, n.
 
-2.3.4	In the case of a polytomy on the OTL tree, take all known branch lengths within the polytomy and find a mean branch length. Treat this branch length as the “known” branch for the subtree and divide it by the maximum number of branches it takes to move across the tree from base to tip.
+2.3.4	In the case of a polytomy on the OTL tree, take all known branch lengths within the polytomy and find a mean branch length. 
+Treat this branch length as the “known” branch for the subtree and divide it by the maximum number of branches it takes to move across the tree from base to tip.
 
 2.3.5	If a known branch is both part of a polytomy and sister to an unknown branch, treat as a normal sister (i.e. a subtree with two terminal branches)
 
@@ -76,8 +89,15 @@ tree <- tol_induced_subtree(ott_ids = ott_id(A_taxa))
 2.4.3 After each subtree was placed, the tree was checked to ensure that the branches were topologically correct and that the branch length was correct.
 
 #### 2.5 Making tree ultrametric
-2.5.1
-
+2.5.1 Prune all non-matrix taxa
+```
+prune_tree <- drop.tip(tree, c(...))
+```
+2.5.2 reroot tree
+```
+rooted_SVG <- root.phylo(prune_tree, "Bugula_neritina")
+```
+2.5.3 Make tree ultrametric
 ```
 ultrametric_tree <- chronopl(tree, lambda = 0, age.min = 1, age.max = NULL,
          node = "root", S = 1, tol = 1e-8,
@@ -89,13 +109,42 @@ ultrametric_tree <- chronopl(tree, lambda = 0, age.min = 1, age.max = NULL,
 ```
 set.seed(123)  # Set seed for reproducibility
 resolved_trees <- list()
-for (i in 1:100) {
+for (i in 1:1000) {
   resolved_trees[[i]] <- multi2di(ultrametric_tree)
 }
 ```
 
-#### 2.7 Simmap analysis
+#### 2.7 Ape - ACE analysis for each character of interest
+2.7.1 Discrete characters - run Equate Rates, Symmetrical, And All Rates different models
+```
+ancestral_states <- tibble()
+num_shifts <- numeric(100)
 
+for (i in 1:100) {
+  fit <- ace(char_matrix_new, resolved_trees[[i]], type = "discrete")
+  
+  #get the two states (fit$lik.anc[1] is prob(0) at root and fit$lik.anc[135] is prob(1) at root)
+  ancestral_states[i,1] <- fit$lik.anc[1]
+  ancestral_states[i,2] <- fit$lik.anc[135]
+  # Calculate the number of shifts
+  states <- as.character(fit$lik.anc)
+  shifts <- sum(diff(as.numeric(states)) != 0)
+  num_shifts[i] <- shifts
+}
+```
+
+2.7.2 Continuous characters
+```
+
+```
+
+#### 2.8 Parsimony analysis for each character of interest
+2.8.1 Most parsimonious reconstruction (MPR) function in Ape
+```
+MPR(x, phy, outgroup)
+```
+
+#### 2.9 Simmap plot
 ```
 fitER <- make.simmap(resolved_trees[[1]], char_matrix_new, model = "ER", nsim = 100)
 pd <- summary(fitER)
@@ -103,8 +152,23 @@ plot(pd,fsize=0.6,ftype="i",colors=cols, type = "fan", cex = 0.2)
 add.simmap.legend(colors=cols[2:1],prompt=FALSE,x=0,y=-4,vertical=FALSE)
 ```
 
-#### 2.8 Liability analysis
-2.8.1 
+
+#### 2.10 Liability analysis
+2.10.1 Use PAUP* - randtree to create a randomized tree
+
+2.10.2 Fit the same data to both the random and original tree to see the fit of the data to both trees
+
+2.10.3 Plot the two datasets, freq and number of steps 
+
+
+#### 2.11 Branch length accuracy analysis
+2.11.1 Using only the taxa in both the matrix and the backbone tree, randomly remove 1/3 of taxa
+
+2.11.2 Calculate the branch length of those taxa using the same method as before
+
+2.11.3 Run simmap analaysis on both the original backbone tree and the reconstructed backbone 
+
+2.11.4 Compare the consistency of the results
 
 
 ## 3 WORK COMPLETED SO FAR
