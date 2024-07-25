@@ -62,7 +62,7 @@ A_taxa <- tnrs_match_names(names = c("","",""...)
 tree <- tol_induced_subtree(ott_ids = ott_id(A_taxa))
 ```
 
-#### 2.3 Creating subtrees and determining branch length
+#### 2.3 Creating subtrees and determining branch lengths
 
 2.3.1 To determine the base of a given subtree, choose one branch that is in the constraint tree and therefore has a known branch length. 
 The sub tree contains this branch and all matrix species that this is the closest known branch phylogenetically. 
