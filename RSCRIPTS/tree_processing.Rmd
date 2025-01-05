@@ -1,0 +1,174 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+library(ape)
+library(phytools)
+library(geiger)
+library(tibble)
+```
+
+```{r}
+working_tree <- read.tree("~/Desktop/constraint_SVG_24.tre")
+working_tree_weird <- working_tree
+working_tree_weird$edge.length[is.nan(working_tree_weird$edge.length)] <- 0.04756
+plot(working_tree_weird)
+```
+```{r}
+rooted_tree <- root.phylo(working_tree_weird, "Bugula_neritina")
+prune_constraint <- drop.tip(rooted_tree, c("Helobdella_robusta","Haementeria_depressa", "Perionyx_excavatus","Lumbricus_rubellus","Eisenia_andrei","Ophelia_limacina", "Ridgeia_piscesae","Flabelligera_affinis","Cirratulidae","Pomatoceros_lamarckii", "Malacoceros_fuliginosus","Eurythoe_complanata","Onuphis_iridescens","Lumbrineris_zonata","Glyceratri_dactyla","Eulalia_clavigera","Myzostoma_cirriferum","Chaetoderma_nitidulum","Falcidens_sagittiferus","Scutopus_ventrolineatus","Epimenia_babai","Apodomenia_enigmatica", "Neomenia_megatrapezata","Stylomenia_sulcodoryata","Acanthopleura_granulata","Acanthopleura_gemmata","Cryptoplax_larvaeformis","Acanthochitona_crinita","Nuttallochiton_mirandus","Mopalia_muscosa","Katharina_tunicata","Callochiton_sp","Leptochiton_asellus","Hanleya_nagelfar","Nautilus_pompilius","Dosidicus_gigas","Doryteuthis_pealeii","Hapalochlaena_maculosa","Octopus_vulgaris","Crassostrea_virginica","Crassostrea gigas","Mizuhopecten","Bathymodiolus","Anadara_nux","Neotrigonia","Leaunio","Astarte","Myochama","Ruditapes","Bayerotrochus_midas","Lepetodrilus_pustulosus","Amphiplica_gordensis","Phasianella_ventricosa","Prothalotia_lehmanni","Monodonta_labio","Cellana_radiata","Nacella_magelanica","Paralepetopsis","Eoacmaea_pustulata","Patelloida_saccharina","Nipponacmea_fuscoviridis","Testudinalia_testudinalis","Titiscania_limacina","Pleuropoma_jana","Bathynerita_naticoidea","Nerita_melanotragus","Smaragdia_rangiana","Clithon_parvulum","Puperita_pupa","Architectonica_perspectiva","Pleurobranchaea_californica","Okenia_angelica", "Bathydoris_clavigera","Hydatina_physis","Rissoella_caribaea","Tylodina_fungina","Haminoea_antillarum","Oxynoe_viridis","Microhedyle_glandulifera","Turbonilla","Phallomedusa_solida","Ophicardelus_sulcatus","Pomacea_diffusa", "Pomacea_canaliculata","Bithynia_siamensis_goniomphalos","Janthina_janthina","Rubyspira_osteovora","Euspira_heros","Echinolittorina_malaccana","Lobatus_gigas","Urosalpinx_cinerea","Crassispira_cerithina","Cumia_reticulata","Volegalea_cochlidium","Charonia_tritonis","Prochaetoderma_californicum","Crassostreagigas","Bugula_neritina","Chaetoerma_nitidulum","Nuttallochiton_mirandus-PS96_788R","Katharina_tunicata_KK356-1-4R","Pleuropoma_jana_C","Neomenia_megatrapezata-SRR331899","Mopalia_muscosa_KK364-1-4R","Clithon_parvulum_386153"))
+plot(prune_constraint)
+write.tree(prune_constraint, file= "~/Desktop/working_phy_pruned.tre")
+```
+
+
+
+```{r}
+ultrametric_tree <- chronopl(prune_constraint, lambda = 0, age.min = 1, age.max = NULL,
+         node = "root", S = 1, tol = 1e-8,
+         CV = FALSE, eval.max = 500, iter.max = 500)
+
+plotTree(tree,type="fan",fsize=0.8,ftype="off")
+plotTree(ultrametric_tree,type="fan",fsize=0.8,ftype="off")
+
+```
+```{r}
+tree <- read.tree("~/Desktop/working_phy_pruned.tre")  # Load your phylogeny
+char_matrix <- read.csv("~/Desktop/matrix_09_02.csv")  # Load your character matrix
+
+
+names(char_matrix_new) <- char_matrix$Names
+tree$tip.label %in% char_matrix$Names
+print(tree$tip.label)
+dx <- !(tree$tip.label %in% char_matrix$Names)
+tree$tip.label[dx]
+
+xd <- !(char_matrix$Names %in% tree$tip.label)
+char_matrix$Names[xd]
+```
+
+
+
+
+```{r}
+set.seed(123)  # Set seed for reproducibility
+resolved_trees <- list()
+for (i in 1:100) {
+  resolved_trees[[i]] <- multi2di(ultrametric_tree)
+}
+
+```
+
+```{r}
+ancestral_states <- vector()
+num_shifts <- numeric(100)
+
+for (i in 1:1000) {
+  fit <- ace(char_matrix[,2], resolved_trees[[i]], type = "discrete")
+  ancestral_states[[i]] <- fit
+  
+  #get the two states (fit$lik.anc[1] is prob(0) at root and fit$lik.anc[135] is prob(1) at root)
+  ancestral_states[i,1] <- fit$lik.anc[1]
+  ancestral_states[i,2] <- fit$lik.anc[135]
+  # Calculate the number of shifts
+  states <- as.character(fit$lik.anc)
+  shifts <- sum(diff(as.numeric(states)) != 0)
+  num_shifts[i] <- shifts
+}
+
+summary(ancestral_states)
+```
+
+
+```{r}
+phytools::plotTree(resolved_trees[[1]],ftype="i", fsize = 0.5)
+nodelabels(frame="circ",bg="white",cex=0.8)
+
+```
+```{r}
+mtrees<-rescaleSimmap(resolved_trees,1)
+cols<-c("blue","red"); names(cols)<-c(0,1)
+par(mar=rep(0.1,4))
+plot.phylo(resolved_trees[[1]],plot=FALSE,no.margin=T)
+plotSimmap(resolved_trees[[1]],cols,pts=FALSE,lwd=3,ftype="off", add=TRUE)
+text(1,1:length(resolved_trees[[1]]$tip),resolved_trees[[1]]$tip.label, pos=4,font=3)
+tiplabels((char_matrix_new,sort(unique(char_matrix_new))),cex=0.3)
+```
+```{r}
+ancestral_states <- tibble()
+num_shifts <- numeric(100)
+
+for (i in 1:100) {
+  fitER <- ace(char_matrix_new, resolved_trees[[i]], type = "discrete", model = "ER")
+  
+  #get the two states (fit$lik.anc[1] is prob(0) at root and fit$lik.anc[135] is prob(1) at root)
+  ancestral_states[i,1] <- fitER$lik.anc[1]
+  ancestral_states[i,2] <- fitER$lik.anc[135]
+  # Calculate the number of shifts
+  states <- as.character(fitER$lik.anc)
+  shifts <- sum(diff(as.numeric(states)) != 0)
+  num_shifts[i] <- shifts
+}
+
+fitER
+```
+```{r}
+round(fitER$lik.anc,3)
+
+plotTree(resolved_trees[[1]],type="fan",fsize=0.8,ftype="off")
+nodelabels(node=1:resolved_trees[[1]]$Nnode+Ntip(resolved_trees[[1]]),
+    pie=fitER$lik.anc,piecol=cols,cex=0.5)
+tiplabels(pie=to.matrix(char_matrix_new,sort(unique(char_matrix_new))),piecol=cols,cex=0.3)
+add.simmap.legend(colors=cols,prompt=FALSE,x=0.9*par()$usr[1],
+    y=-max(nodeHeights(resolved_trees[[1]])),fsize=0.8)
+```
+
+
+
+
+#### 2.10 Liability analysis
+2.10.1 Use PAUP* - randtree to create a randomized tree
+
+2.10.2 Fit the same data to both the random and original tree to see the fit of the data to both trees
+
+2.10.3 Plot the two datasets, freq and number of steps 
+
+
+#### 2.11 Branch length accuracy analysis
+2.11.1 Using only the taxa in both the matrix and the backbone tree, randomly remove 1/3 of taxa
+
+2.11.2 Calculate the branch length of those taxa using the same method as before
+
+2.11.3 Run simmap analaysis on both the original backbone tree and the reconstructed backbone 
+
+2.11.4 Compare the consistency of the results
+
+
+
+
+plotTree(resolved_trees[[1]],type="fan",fsize=0.3,ftype="i", cex= 10)
+nodelabels(node=1:resolved_trees[[1]]$Nnode+Ntip(resolved_trees[[1]]),
+    pie=fitER$lik.anc,piecol=cols,cex=0.5)
+tiplabels(pie=to.matrix(char_matrix_new,sort(unique(char_matrix_new))),piecol=cols,cex=0.3)
+add.simmap.legend(colors=cols,prompt=FALSE,x=0.9*par()$usr[1],
+    y=-max(nodeHeights(resolved_trees[[1]])),fsize=0.8)
+    
+    
+```{r}
+fitER <- make.simmap(resolved_trees[[1]], char_matrix_new, model = "ER", nsim = 100)
+
+pd <- summary(fitER)
+
+plot(pd,fsize=0.6,ftype="i",colors=cols, type = "fan", cex = 0.2)
+add.simmap.legend(colors=cols[2:1],prompt=FALSE,x=0,y=-4,vertical=FALSE)
+```
+
+
+
+
+
+

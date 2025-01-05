@@ -1,0 +1,48 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(ape)
+library(phytools)
+library(geiger)
+```
+
+```{r}
+edit_tree <- read.tree("~/Desktop/constraint_SVG_sing_sis_20r.tre")
+```
+
+```{r}
+prune_20r <- drop.tip(edit_tree, c("Pectinaria","Lanice_conchilega"))
+```
+
+```{r}
+write.tree(prune_20r, file= "~/Desktop/constraint_SVG_sing_sis_20rp.tre")
+```
+
+```{r}
+edit_tree_2 <- read.tree("~/Desktop/constraint_SVG_sing_sis_22r.tre")
+```
+
+```{r}
+prune_22r <- drop.tip(edit_tree_2, c("Helobdella_robusta","Haementeria_depressa"))
+```
+
+```{r}
+write.tree(prune_22r, file= "~/Desktop/constraint_SVG_sing_sis_22rp.tre")
+```
+
+```{r}
+edit_tree_3 <- read.tree("~/Desktop/constraint_SVG_sing_sis_23r.tre")
+```
+
+```{r}
+prune_23r <- drop.tip(edit_tree_3, c("Anadara_trapezia","Neotrigonia_margaritacea", "Elliptio_complanata","Astarte_sulcata","Myochama_anomioides","Ruditapes_philippinarum","Antalis_dentalis","Gadila_tolmiei","Entalina_tetragona"))
+```
+
+```{r}
+write.tree(prune_23r, file= "~/Desktop/constraint_SVG_sing_sis_23rp.tre")
+```
+
+
+

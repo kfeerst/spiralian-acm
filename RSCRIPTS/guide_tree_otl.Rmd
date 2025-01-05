@@ -1,0 +1,258 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+```{r}
+library(rotl)
+```
+
+```{r}
+lost_taxa <- tnrs_match_names(names = c("Biplex corrugata",
+"Carychium",
+"Onchidella",
+"Myosotella",
+"Siphonaria",
+"Bimastos",
+"Alitta succinea",
+"Ophryotrocha puerilis",
+"Nudisyllis pulligera",
+"Polygordius neapolitanus",
+"Protula tubularia",
+"Raphidrilus nemasoma"))
+```
+
+```{r}
+lost_taxa
+tree <- tol_induced_subtree(ott_ids = ott_id(lost_taxa))
+```
+
+
+```{r}
+A_taxa <- tnrs_match_names(names = c("Amphitrite ornata",
+"Arenicola cristata",
+"Armandia",
+"Bimastos",
+"Bonellia viridis",
+"Branchiobdella",
+"Cambarincola",
+"Capitella capitata",
+"Capitella teleta",
+"Chaetogaster",
+"Chaetopterus",
+"Clymenella mucosa",
+"Clymenella torquata",
+"Dinophilus",
+"Diopatra",
+"Eisenia fetida",
+"Erpobdella",
+"Galeolaria",
+"Glossiphonia",
+"Glycera",
+"Golfingia",
+"Hirudo",
+"Hydroides",
+"Ikedosoma",
+"Laeonereis",
+"Lanice",
+"Lepidonotus",
+"Lissomyema",
+"Lumbricillus",
+"Marenzelleria",
+"Myzostoma",
+"Neosabellaria",
+"Alitta",
+"Notomastus tenuis",
+"Ophryotrocha",
+"Owenia fusiformis",
+"Pectinaria gouldii",
+"Phascolosoma",
+"Phyllodoce maculata",
+"Phylo foetida",
+"Nudisyllis",
+"Piscicola",
+"Platynereis dumerilli",
+"Spirobranchus",
+"Proceraea",
+"Pseudopolydora",
+"Rhynchelmis",
+"Scoloplos",
+"Serpula vermicularis",
+"Spirorbis",
+"Sternaspis",
+"Sthenelais",
+"Streblospio benedicti",
+"Stylaria lacustris",
+"Themiste lageniformis",
+"Themiste pyroides",
+"Theromyzon",
+"Tomopteris",
+"Tubifex tubifex",
+"Tubificoides",
+"Urechis caupo",
+"Cymatilesta",
+"Cystiscus",
+"Facelina",
+"Haloa",
+"Hermaea",
+"Oxydromus obscurus"))
+
+A_taxa
+#"Polygordius neapolitanus",
+```
+
+
+```{r}
+M_taxa <- tnrs_match_names(names = c("Adalaria",
+"Adula californiensis",
+"Ancula gibbosa",
+"Aplysia californica",
+"Aplysia fasciata",
+"Armina californica",
+"Bankia",
+"Bembicium nanum",
+"Biomphalaria",
+"Bithynia",
+"Bulla",
+"Busycon",
+"Calliostoma",
+"Cerastoderma",
+"Carychium",
+"Cavolinia",
+"Chiton marmoratus",
+"Conuber",
+"Conus vexillum",
+"Crepidula fornicata",
+"Cymbulia",
+"Dendronotus",
+"Deroceras",
+"Doris_montereyensis",
+"Doto coronata",
+"Dreissena",
+"Elliptio complanata",
+"Elysia viridis",
+"Ennucula",
+"Epimenia",
+"Ercolania",
+"Fiona pinnata",
+"Firoloida",
+"Fusitriton",
+"Gibbula",
+"Okenia",
+"Haliotis",
+"Herpetompoma",
+"Hiatella",
+"Ilyanassa obsoleta",
+"Lacuna pallidula",
+"Lambis truncata",
+"Limapontia",
+"Lissachatina",
+"Littorina",
+"Tectura scutum",
+"Lymnaea stagnalis",
+"Margarites helicinus",
+"Marisa cornuarietis",
+"Melibe leonina",
+"Mercenaria mercenaria",
+"Mytilus edulis",
+"Octopus vulgaris",
+"Onchidoris bilamellata",
+"Palio nothus",
+"Pandora inaequivalis",
+"Peronia verruculata",
+"Petrasma pervernicosa",
+"Pholas dactylus",
+"Physa",
+"Pila globosa",
+"Pinctada",
+"Placopecten",
+"Planorbella trivolvis",
+"Cochlostoma",
+"Pterotrachea",
+"Rissoa parva",
+"Thylacodes",
+"Sinotaia",
+"Siphonaria",
+"Sphaerium striatinum",
+"Spisula solidissima",
+"Stenoplax heathiana",
+"Stramonita haemastoma",
+"Teredo clappi",
+"Tonna",
+"Tritonia",
+"Turbo radiatus",
+"Umbraculum",
+"Viviparus",
+"Yoldia",
+"Magallana gigas",
+"Marsenia",
+"Middendorffia",
+"Nucella lapillus",
+"Patella vulgata",
+"Protula tubularia",
+"Raphidrilus",
+"Theodoxus",
+"Tricornis",
+"Varohadra",
+"Vermetus",
+"Acanthobdella"))
+
+taxa
+```
+
+```{r}
+tree <- tol_induced_subtree(ott_ids = ott_id(A_taxa))
+
+plot(tree, cex = .8, label.offset = .1, no.margin = TRUE)
+library(ape)
+plot(tree,no.margin=TRUE,edge.width=2,cex=0.7)
+nodelabels(text=1:tree$Nnode,node=1:tree$Nnode+Ntip(tree))
+```
+```{r}
+tip.label <- "add_species"
+edge.length=1.0
+obj <- ()
+
+bind.tip<-function(tree,tip.label,edge.length=NULL,where=NULL){
+  if(is.null(where)) where<-length(tree$tip)+1
+  tip<-list(edge=matrix(c(2,1),1,2),
+    tip.label=tip.label,
+    edge.length=edge.length,
+    Nnode=1)
+  class(tip)<-"phylo"
+  obj<-bind.tree(tree,tip,where=where)
+  return(obj)
+}
+
+
+```
+
+```{r}
+worm_studies <- studies_find_studies(property = "ot:focalCladeOTTTaxonName",
+
+value = "Annelida", exact = TRUE)
+
+worm_studies
+```
+```{r}
+vignette("rotl", package="rotl")
+```
+
+```{r}
+phytools
+bind.tip<-function(tree,tip.label,edge.length=NULL,where=NULL){
+  if(is.null(where)) where<-length(tree$tip)+1
+  tip<-list(edge=matrix(c(2,1),1,2),
+    tip.label=tip.label,
+    edge.length=edge.length,
+    Nnode=1)
+  class(tip)<-"phylo"
+  obj<-bind.tree(tree,tip,where=where)
+  return(obj)
+}
+```
+
+
