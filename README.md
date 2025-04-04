@@ -1,9 +1,5 @@
 # Spiralian Ancestral Character Mapping 
 
-### RSCRIPTS
-
-R Scripts used in these analyses
-
 ### 01-BACKBONE_TREE
 
 Scripts and data files used to construct the backbone phylogenetic tree
@@ -24,3 +20,8 @@ Scripts and data files used to conduct covariance analyses
 
 a priori protocol for phylogenetic analyses
 
+### LICENSE
+
+All software in this repository are distributed under the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version. See LICENSE file for more information.
