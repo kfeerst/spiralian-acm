@@ -1,0 +1,113 @@
+---
+title: "cleavage state analysis"
+output: html_notebook
+---
+
+```{r}
+tree <- read.tree("~/Desktop/ultrametric_full.tre")  # Load your phylogeny
+char_matrix <- read.csv("~/Desktop/matrix_cleavage_09_03.csv")  # Load your character matrix
+
+#find mismatches
+dx <- !(tree$tip.label %in% char_matrix$Names)
+tree$tip.label[dx]
+
+xd <- !(char_matrix$Names %in% tree$tip.label)
+char_matrix$Names[xd]
+```
+
+```{r}
+set.seed(123)  # Set seed for reproducibility
+resolved_trees <- list()
+for (i in 1:100) {
+  resolved_trees[[i]] <- multi2di(tree)
+}
+
+#fix order of char_matrix
+rownames(char_matrix) <- char_matrix$Names
+char_matrix_for_analysis <- char_matrix[resolved_trees[[1]]$tip.label,]
+identical(resolved_trees[[1]]$tip.label, rownames(char_matrix_for_analysis)) #Check that reordering worked
+```
+
+```{r}
+#do ancestral state reconstruction 1000 times
+
+ancestral_statesER <- list()
+num_shiftsER <- numeric(1000)
+
+for (i in 1:1000) {
+  fitER <- ace(char_matrix_for_analysis[,2], resolved_trees[[i]], type = "discrete", model = "ER")
+  ancestral_statesER[[i]] <- fitER
+ 
+  # Calculate the number of shifts
+  ER_states <- as.character(fitER$lik.anc)
+  ER_shifts <- sum(diff(as.numeric(ER_states)) != 0)
+  num_shiftsER[i] <- ER_shifts
+}
+
+# Extract the root states
+root_statesER <- sapply(ancestral_statesER, function(x) x$lik.anc[1, ])
+
+# Summarize the root states
+root_state_summaryER <- apply(root_statesER, 1, mean)
+
+# Summary of the number of shifts
+num_shifts_summaryER <- summary(num_shiftsER)
+
+#loglike
+loglike_fitER <- fitER$loglik
+
+# Results
+list(
+  root_state_summaryER = root_state_summaryER,
+  num_shifts_summaryER = num_shifts_summaryER,
+  loglike_fitER = loglike_fitER
+)
+```
+
+```{r}
+ancestral_statesARD <- list()
+num_shiftsARD <- numeric(1000)
+
+for (i in 1:1000) {
+  fitARD <- ace(char_matrix_for_analysis[,2], resolved_trees[[i]], type = "discrete", model = "ARD")
+  ancestral_statesARD[[i]] <- fitARD
+ 
+  # Calculate the number of shifts
+  ARD_states <- as.character(fitARD$lik.anc)
+  ARD_shifts <- sum(diff(as.numeric(ARD_states)) != 0)
+  num_shiftsARD[i] <- ARD_shifts
+}
+
+# Extract the root states
+root_statesARD <- sapply(ancestral_statesARD, function(x) x$lik.anc[1, ])
+
+# Summarize the root states
+root_state_summaryARD <- apply(root_statesARD, 1, mean)
+
+# Summary of the number of shifts
+num_shifts_summaryARD <- summary(num_shiftsARD)
+
+#loglikelihood
+loglike_fitARD <- fitARD$loglik
+
+# Results
+list(
+  root_state_summaryARD = root_state_summaryARD,
+  num_shifts_summaryARD = num_shifts_summaryARD,
+  loglike_fitARD = loglike_fitARD
+)
+
+```
+
+```{r}
+   #  For a two-state character, 
+    #   ER is a one parameter model, 
+    #   ARD a two parameter model,
+    #   SYM is equiv. to ER
+
+    # df = 1 (i.e. ARD(2) - ER(1))
+    erard_stat <- 2*abs(fitER$loglik - fitARD$loglik)
+    erard <- 1-pchisq(2*abs(fitER$loglik - fitARD$loglik), 1)
+    cat("ER vs. ARD: ", erard, ", stat = ", erard_stat, "\n")
+    cat("    if <= 0.05 than ARD is significantly better than ER\n")
+```
