@@ -1,0 +1,185 @@
+---
+title: "fitPagel_covariance"
+output: html_notebook
+---
+
+
+```{r}
+library(phytools)
+packageVersion("phytools")
+library(RColorBrewer)
+```
+```{r}
+cov.tree <- read.tree("working_phy_pruned.tre")
+cl_lv.data <- read.csv("cl_lv_cv.csv")
+
+```
+
+```{r}
+#drop unknowns
+cl_lv.tree <- drop.tip(cov.tree, c("Arenicola_cristata","Dinophilus_sp","Diopatra_cuprea","Margarites_helicinus","Pectinaria_gouldii","Pinctada_maxima","Pseudopolydora_kempi","Scoloplos_armiger","Sinotaia_quadratus","Streblospio_benedicti","Theodoxus_fluviatilis","Thylacodes_squamigerus","Clymenella_mucosa"))
+
+```
+
+
+```{r}
+#fix order of char_matrix
+rownames(cl_lv.data) <- cl_lv.data$Names
+cl_lv_cv.data <- cl_lv.data[cl_lv.tree$tip.label,]
+identical(cl_lv.tree$tip.label, rownames(cl_lv_cv.data)) #Check that reordering worked
+
+```
+
+
+```{r}
+## extract discrete characters
+cleavage_state<-setNames(cl_lv_cv.data$cleavage,
+    rownames(cl_lv_cv.data))
+larval_type<-setNames(cl_lv_cv.data$larval_type,
+    rownames(cl_lv_cv.data))
+```
+
+
+```{r}
+spiral1.depx<-fitPagel(cl_lv.tree,cleavage_state,
+	larval_type,dep.var="x",model="ARD")
+spiral1.depy<-fitPagel(cl_lv.tree,cleavage_state,
+	larval_type,dep.var="y",model="ARD")
+spiral1.full<-fitPagel(cl_lv.tree,cleavage_state,
+	larval_type,model="ARD")
+anova(spiral1.depx,spiral1.depy,spiral1.full)
+print(spiral1.depx)
+print(spiral1.depy)
+print(spiral1.full)
+```
+
+
+```{r}
+plot(spiral1.depx,show="dependent",main="")
+mtext(paste("a) cleavage state depends on larval type",
+	"\n  (but not the reverse), AIC =",
+	round(spiral1.depx$dependent.AIC,2)),
+	adj=0,cex=0.7,line=-0.25)
+plot(spiral1.depy,show="dependent",main="")
+mtext(paste("a) larval type depends on cleavage state",
+	"\n  (but not the reverse), AIC =",
+	round(spiral1.depy$dependent.AIC,2)),
+	adj=0,cex=0.7,line=-0.25)
+plot(spiral1.full,show="dependent",main="")
+mtext(paste("c) interdependent trait evolution model",
+	"\n  for larval type & cleavage state, AIC =",
+	round(spiral1.full$dependent.AIC,2)),
+	adj=0,cex=0.7,line=-0.25)
+```
+
+```{r}
+cl_es.data <- read.csv("cl_es.csv")
+
+```
+
+```{r}
+cl_es.tree <- drop.tip(cov.tree, c("Biomphalaria_glabrata","Branchiobdella_parasita","Cambarincola_philadelphicus","Cystiscus_minutissimus","Elliptio_complanata","Elysia_viridis","Facelina_bostoniensis","Lottia_gigantea","Okenia_nodosa","Onchidoris_bilamellata","Palio_nothus","Phylo_foetida","Placopecten_magellanicus","Spirorbis_borealis","Stramonita_haemastoma","Teredo_clappi","Thylacodes_squamigerus","Tubificoides_benedii","Vermetus_sp"))
+```
+
+```{r}
+#fix order of char_matrix
+rownames(cl_es.data) <- cl_es.data$Names
+cl_es_cv.data <- cl_es.data[cl_es.tree$tip.label,]
+identical(cl_es.tree$tip.label, rownames(cl_es_cv.data)) #Check that reordering worked
+```
+
+```{r}
+## extract discrete characters
+cleavage_state<-setNames(cl_es_cv.data$cleavage,
+    rownames(cl_es_cv.data))
+egg_size<-setNames(cl_es_cv.data$egg_size,
+    rownames(cl_es_cv.data))
+```
+
+
+```{r}
+spiral2.depx<-fitPagel(cl_es.tree,cleavage_state,
+	egg_size,dep.var="x",model="ARD")
+spiral2.depy<-fitPagel(cl_es.tree,cleavage_state,
+	egg_size,dep.var="y",model="ARD")
+spiral2.full<-fitPagel(cl_es.tree,cleavage_state,
+	egg_size,model="ARD")
+anova(spiral2.depx,spiral2.depy,spiral2.full)
+print(spiral2.depx)
+print(spiral2.depy)
+print(spiral2.full)
+```
+
+
+```{r}
+plot(spiral2.depx,show="dependent",main="")
+mtext(paste("a) cleavage state depends on egg size",
+	"\n  (but not the reverse), AIC =",
+	round(spiral2.depx$dependent.AIC,2)),
+	adj=0,cex=0.7,line=-0.25)
+plot(spiral2.depy,show="dependent",main="")
+mtext(paste("b) egg size depends on cleavage state",
+	"\n  (but not the reverse), AIC =",
+	round(spiral2.depy$dependent.AIC,2)),
+	adj=0,cex=0.7,line=-0.25)
+plot(spiral2.full,show="dependent",main="")
+mtext(paste("b) interdependent trait evolution model",
+	"\n  for egg size & cleavage state, AIC =",
+	round(spiral2.full$dependent.AIC,2)),
+	adj=0,cex=0.7,line=-0.25)
+```
+
+```{r}
+es_lv.data <- read.csv("es_lv_cv.csv")
+```
+
+```{r}
+es_lv.tree <- drop.tip(ultrametric.tree, c("Biomphalaria_glabrata","Branchiobdella_parasita","Cambarincola_philadelphicus","Cystiscus_minutissimus","Elliptio_complanata","Elysia_viridis","Facelina_bostoniensis","Lottia_gigantea","Okenia_nodosa","Onchidoris_bilamellata","Palio_nothus","Phylo_foetida","Placopecten_magellanicus","Spirorbis_borealis","Stramonita_haemastoma","Teredo_clappi","Thylacodes_squamigerus","Tubificoides_benedii","Vermetus_sp","Arenicola_cristata","Dinophilus_sp","Diopatra_cuprea","Margarites_helicinus","Pectinaria_gouldii","Pinctada_maxima","Pseudopolydora_kempi","Scoloplos_armiger","Sinotaia_quadratus","Streblospio_benedicti","Theodoxus_fluviatilis","Thylacodes_squamigerus","Clymenella_mucosa"))
+```
+
+```{r}
+#fix order of char_matrix
+rownames(es_lv.data) <- es_lv.data$Names
+es_lv_cv.data <- es_lv.data[es_lv.tree$tip.label,]
+identical(es_lv.tree$tip.label, rownames(es_lv_cv.data)) #Check that reordering worked
+```
+
+```{r}
+## extract discrete characters
+larval_type<-setNames(es_lv_cv.data$larval_type,
+    rownames(es_lv_cv.data))
+egg_size<-setNames(es_lv_cv.data$egg_size,
+    rownames(es_lv_cv.data))
+```
+
+```{r}
+spiral3.depx<-fitPagel(es_lv.tree,larval_type,
+	egg_size,dep.var="x",model="ARD")
+spiral3.depy<-fitPagel(es_lv.tree,larval_type,
+	egg_size,dep.var="y",model="ARD")
+spiral3.full<-fitPagel(es_lv.tree,larval_type,
+	egg_size,model="ARD")
+anova(spiral3.depx,spiral3.depy,spiral3.full)
+print(spiral3.depx)
+print(spiral3.depy)
+print(spiral3.full)
+```
+
+```{r}
+plot(spiral3.depx,show="dependent",main="")
+mtext(paste("a) larval type depends on egg size",
+	"\n  (but not the reverse), AIC =",
+	round(spiral3.depx$dependent.AIC,2)),
+	adj=0,cex=0.7,line=-0.25)
+plot(spiral3.depy,show="dependent",main="")
+mtext(paste("b) egg size depends on larval type",
+	"\n  (but not the reverse), AIC =",
+	round(spiral3.depy$dependent.AIC,2)),
+	adj=0,cex=0.7,line=-0.25)
+plot(spiral3.full,show="dependent",main="")
+mtext(paste("c) interdependent trait evolution model",
+	"\n  for egg size & larval type, AIC =",
+	round(spiral3.full$dependent.AIC,2)),
+	adj=0,cex=0.7,line=-0.25)
+```
+
