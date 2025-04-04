@@ -1,0 +1,125 @@
+---
+title: "Egg size"
+output: html_notebook
+---
+
+```{r}
+tree2 <- read.tree("ultrametric_full.tre")  # Load your phylogeny
+char_matrix2 <- read.csv("matrix_egg_diam_09_03.csv")  # Load your character matrix
+```
+
+```{r}
+#drop unknowns, gives ace issues
+egg_diam_tree <- drop.tip(tree2, c("Biomphalaria_glabrata","Branchiobdella_parasita","Cambarincola_philadelphicus","Cystiscus_minutissimus","Elliptio_complanata","Elysia_viridis","Facelina_bostoniensis","Lottia_gigantea","Okenia_nodosa","Onchidoris_bilamellata","Palio_nothus","Phylo_foetida","Placopecten_magellanicus","Spirorbis_borealis","Stramonita_haemastoma","Teredo_clappi","Thylacodes_squamigerus","Tubificoides_benedii","Vermetus_sp"))
+```
+
+```{r}
+#check that tree and matrix have the same taxa
+dx <- !(egg_diam_tree$tip.label %in% char_matrix2$Names)
+egg_diam_tree$tip.label[dx]
+
+xd <- !(char_matrix2$Names %in% egg_diam_tree$tip.label)
+char_matrix2$Names[xd]
+```
+```{r}
+set.seed(123)  # Set seed for reproducibility
+resolved_trees_ed <- list()
+
+for (i in 1:1000) {
+  resolved_trees_ed[[i]] <- multi2di(egg_diam_tree)
+}
+
+#fix order of char_matrix
+rownames(char_matrix) <- char_matrix$Names
+char_matrix_for_analysis <- char_matrix[resolved_trees_ed[[1]]$tip.label,]
+identical(resolved_trees_ed[[1]]$tip.label, rownames(char_matrix_for_analysis)) #Check that reordering worked
+```
+```{r}
+#do ancestral state reconstruction 1000 times
+
+ancestral_statesERed <- list()
+num_shiftsERed <- numeric(1000)
+
+for (i in 1:1000) {
+  fitERed <- ace(char_matrix_for_analysis[,2], resolved_trees_ed[[i]], type = "discrete", model = "ER")
+  ancestral_statesERed[[i]] <- fitERed
+ 
+  # Calculate the number of shifts
+  ERed_states <- as.character(fitERed$lik.anc)
+  ERed_shifts <- sum(diff(as.numeric(ERed_states)) != 0)
+  num_shiftsERed[i] <- ERed_shifts
+}
+
+# Extract the root states
+root_statesERed <- sapply(ancestral_statesERed, function(x) x$lik.anc[1, ])
+
+# Summarize the root states
+root_state_summaryERed <- apply(root_statesERed, 1, mean)
+
+# Summary of the number of shifts
+num_shifts_summaryERed <- summary(num_shiftsERed)
+
+#loglike
+loglike_fitERed <- fitERed$loglik
+
+# Results
+list(
+  root_state_summaryERed = root_state_summaryERed,
+  num_shifts_summaryERed = num_shifts_summaryERed,
+  loglike_fitERed = loglike_fitERed
+)
+```
+
+```{r}
+ancestral_statesARDed <- list()
+num_shiftsARDed <- numeric(1000)
+
+for (i in 1:1000) {
+  fitARDed <- ace(char_matrix_for_analysis[,2], resolved_trees_ed[[i]], type = "discrete", model = "ARD")
+  ancestral_statesARDed[[i]] <- fitARDed
+ 
+  # Calculate the number of shifts
+  ARDed_states <- as.character(fitARDed$lik.anc)
+  ARDed_shifts <- sum(diff(as.numeric(ARDed_states)) != 0)
+  num_shiftsARDed[i] <- ARDed_shifts
+}
+
+# Extract the root states
+root_statesARDed <- sapply(ancestral_statesARDed, function(x) x$lik.anc[1, ])
+
+# Summarize the root states
+root_state_summaryARDed <- apply(root_statesARDed, 1, mean)
+
+# Summary of the number of shifts
+num_shifts_summaryARDed <- summary(num_shiftsARDed)
+
+#loglikelihood
+loglike_fitARDed <- fitARDed$loglik
+
+# Results
+list(
+  root_state_summaryARDed = root_state_summaryARDed,
+  num_shifts_summaryARDed = num_shifts_summaryARDed,
+  loglike_fitARDed = loglike_fitARDed
+)
+
+```
+```{r}
+   #  For a two-state character, 
+    #   ER is a one parameter model, 
+    #   ARD a two parameter model,
+    #   SYM is equiv. to ER
+
+    # df = 1 (i.e. ARD(2) - ER(1))
+    erard_stat_ed <- 2*abs(fitERed$loglik - fitARDed$loglik)
+    erard_ed <- 1-pchisq(2*abs(fitERed$loglik - fitARDed$loglik), 1)
+    cat("ER vs. ARD: ", erard_ed, ", stat = ", erard_stat_ed, "\n")
+    cat("    if <= 0.05 than ARD is significantly better than ER\n")
+```
+
+
+
+
+
+
+

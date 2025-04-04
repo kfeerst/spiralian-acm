@@ -1,0 +1,136 @@
+---
+title: "larval type"
+output: html_notebook
+---
+
+
+```{r}
+tree3 <- read.tree("ultrametric_full.tre")  # Load your phylogeny
+char_matrix3 <- read.csv("matrix_larval_09_16.csv")  # Load your character matrix
+```
+
+```{r}
+char_matrix_test <- read.csv("larval_simmap.csv")
+
+dx <- !(tree3$tip.label %in% char_matrix_test$Names)
+tree3$tip.label[dx]
+
+xd <- !(char_matrix_test$Names %in% tree3$tip.label)
+char_matrix_test$Names[xd]
+```
+
+
+```{r}
+#drop unknowns
+larval_tree <- drop.tip(tree3, c("Arenicola_cristata","Dinophilus_sp","Diopatra_cuprea","Margarites_helicinus","Pectinaria_gouldii","Pinctada_maxima","Pseudopolydora_kempi","Scoloplos_armiger","Sinotaia_quadratus","Streblospio_benedicti","Theodoxus_fluviatilis","Thylacodes_squamigerus"))
+```
+
+```{r}
+dx <- !(larval_tree$tip.label %in% char_matrix3$Names)
+larval_tree$tip.label[dx]
+
+xd <- !(char_matrix3$Names %in% larval_tree$tip.label)
+char_matrix3$Names[xd]
+```
+
+```{r}
+set.seed(123)  # Set seed for reproducibility
+resolved_trees3 <- list()
+
+for (i in 1:1000) {
+  resolved_trees3[[i]] <- multi2di(larval_tree)
+}
+
+#fix order of char_matrix
+rownames(char_matrix3) <- char_matrix3$Names
+char_matrix_for_analysis3 <- char_matrix3[resolved_trees3[[1]]$tip.label,]
+identical(resolved_trees3[[1]]$tip.label, rownames(char_matrix_for_analysis3)) #Check that reordering worked
+```
+
+```{r}
+#do ancestral state reconstruction 1000 times
+
+ancestral_statesER3 <- list()
+num_shiftsER3 <- numeric(1000)
+
+for (i in 1:1000) {
+  fitER3 <- ace(char_matrix_for_analysis3[,2], resolved_trees3[[i]], type = "discrete", model = "ER")
+  ancestral_statesER3[[i]] <- fitER3
+ 
+  # Calculate the number of shifts
+  ER3states <- as.character(fitER3$lik.anc)
+  ER3shifts <- sum(diff(as.numeric(ER3states)) != 0)
+  num_shiftsER3[i] <- ER3shifts
+}
+
+# Extract the root states
+root_statesER3 <- sapply(ancestral_statesER3, function(x) x$lik.anc[1, ])
+
+# Summarize the root states
+root_state_summaryER3 <- apply(root_statesER3, 1, mean)
+
+# Summary of the number of shifts
+num_shifts_summaryER3 <- summary(num_shiftsER3)
+
+#loglike
+loglike_fitER3 <- fitER3$loglik
+
+# Results
+list(
+  root_state_summaryER3 = root_state_summaryER3,
+  num_shifts_summaryER3 = num_shifts_summaryER3,
+  loglike_fitER3 = loglike_fitER3
+)
+```
+
+```{r}
+ancestral_statesARD3 <- list()
+num_shiftsARD3 <- numeric(1000)
+
+for (i in 1:1000) {
+  fitARD3 <- ace(char_matrix_for_analysis3[,2], resolved_trees3[[i]], type = "discrete", model = "ARD")
+  #ancestral_statesARD3[[i]] <- fitARD3
+ 
+  # Calculate the number of shifts
+  #ARD3states <- as.character(fitARD3$lik.anc)
+  #ARD3shifts <- sum(diff(as.numeric(ARD3states)) != 0)
+  #num_shiftsARD3[i] <- ARD3shifts
+}
+
+
+# Extract the root states
+root_statesARD3 <- sapply(ancestral_statesARD3, function(x) x$lik.anc[1, ])
+
+# Summarize the root states
+root_state_summaryARD3 <- apply(root_statesARD3, 1, mean)
+
+# Summary of the number of shifts
+num_shifts_summaryARD3 <- summary(num_shiftsARD3)
+
+#loglikelihood
+loglike_fitARD3 <- fitARD3$loglik
+
+# Results
+list(
+  root_state_summaryARD3 = root_state_summaryARD3,
+  num_shifts_summaryARD3 = num_shifts_summaryARD3,
+  loglike_fitARD3 = loglike_fitARD3
+)
+
+```
+
+```{r}
+ #  For a two-state character, 
+    #   ER is a one parameter model, 
+    #   ARD a two parameter model,
+    #   SYM is equiv. to ER
+
+    # df = 1 (i.e. ARD(2) - ER(1))
+    erard_stat_l <- 2*abs(fitER3$loglik - fitARD3$loglik)
+    erard_l <- 1-pchisq(2*abs(fitER3$loglik - fitARD3$loglik), 1)
+    cat("ER vs. ARD: ", erard_l, ", stat = ", erard_stat_l, "\n")
+    cat("    if <= 0.05 than ARD is significantly better than ER\n")
+```
+
+
+

@@ -1,0 +1,42 @@
+---
+title: "prune and ultrametric"
+output: html_notebook
+---
+
+
+
+```{r}
+library(ape)
+library(phytools)
+library(geiger)
+library(tibble)
+```
+
+```{r}
+working_tree <- read.tree("constraint_SVG_24.tre")
+working_tree_weird <- working_tree
+working_tree_weird$edge.length[is.nan(working_tree_weird$edge.length)] <- 0.04756
+plot(working_tree_weird)
+```
+```{r}
+rooted_tree <- root.phylo(working_tree_weird, "Bugula_neritina")
+prune_constraint <- drop.tip(rooted_tree, c("Helobdella_robusta","Haementeria_depressa", "Perionyx_excavatus","Lumbricus_rubellus","Eisenia_andrei","Ophelia_limacina", "Ridgeia_piscesae","Flabelligera_affinis","Cirratulidae","Pomatoceros_lamarckii", "Malacoceros_fuliginosus","Eurythoe_complanata","Onuphis_iridescens","Lumbrineris_zonata","Glyceratri_dactyla","Eulalia_clavigera","Myzostoma_cirriferum","Chaetoderma_nitidulum","Falcidens_sagittiferus","Scutopus_ventrolineatus","Epimenia_babai","Apodomenia_enigmatica", "Neomenia_megatrapezata","Stylomenia_sulcodoryata","Acanthopleura_granulata","Acanthopleura_gemmata","Cryptoplax_larvaeformis","Acanthochitona_crinita","Nuttallochiton_mirandus","Mopalia_muscosa","Katharina_tunicata","Callochiton_sp","Leptochiton_asellus","Hanleya_nagelfar","Nautilus_pompilius","Dosidicus_gigas","Doryteuthis_pealeii","Hapalochlaena_maculosa","Octopus_vulgaris","Crassostrea_virginica","Crassostrea gigas","Mizuhopecten","Bathymodiolus","Anadara_nux","Neotrigonia","Leaunio","Astarte","Myochama","Ruditapes","Bayerotrochus_midas","Lepetodrilus_pustulosus","Amphiplica_gordensis","Phasianella_ventricosa","Prothalotia_lehmanni","Monodonta_labio","Cellana_radiata","Nacella_magelanica","Paralepetopsis","Eoacmaea_pustulata","Patelloida_saccharina","Nipponacmea_fuscoviridis","Testudinalia_testudinalis","Titiscania_limacina","Pleuropoma_jana","Bathynerita_naticoidea","Nerita_melanotragus","Smaragdia_rangiana","Clithon_parvulum","Puperita_pupa","Architectonica_perspectiva","Pleurobranchaea_californica","Okenia_angelica", "Bathydoris_clavigera","Hydatina_physis","Rissoella_caribaea","Tylodina_fungina","Haminoea_antillarum","Oxynoe_viridis","Microhedyle_glandulifera","Turbonilla","Phallomedusa_solida","Ophicardelus_sulcatus","Pomacea_diffusa", "Pomacea_canaliculata","Bithynia_siamensis_goniomphalos","Janthina_janthina","Rubyspira_osteovora","Euspira_heros","Echinolittorina_malaccana","Lobatus_gigas","Urosalpinx_cinerea","Crassispira_cerithina","Cumia_reticulata","Volegalea_cochlidium","Charonia_tritonis","Prochaetoderma_californicum","Crassostreagigas","Bugula_neritina","Chaetoerma_nitidulum","Nuttallochiton_mirandus-PS96_788R","Katharina_tunicata_KK356-1-4R","Pleuropoma_jana_C","Neomenia_megatrapezata-SRR331899","Mopalia_muscosa_KK364-1-4R","Clithon_parvulum_386153"))
+plot(prune_constraint)
+write.tree(prune_constraint, file= "working_phy_pruned.tre")
+```
+
+
+
+```{r}
+ultrametric_tree <- chronopl(prune_constraint, lambda = 0, age.min = 1, age.max = NULL,
+         node = "root", S = 1, tol = 1e-8,
+         CV = FALSE, eval.max = 500, iter.max = 500)
+
+plotTree(tree,type="fan",fsize=0.8,ftype="off")
+plotTree(ultrametric_tree,type="fan",fsize=0.8,ftype="off")
+
+write.tree(ultrametric_tree, file= ultrametric.tre)
+
+```
+
+
