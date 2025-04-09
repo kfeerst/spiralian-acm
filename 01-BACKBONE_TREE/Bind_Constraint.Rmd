@@ -14,9 +14,9 @@ library(phytools)
 
 
 ```{r}
-mollusk_tree <- read.tree()
-annelid_tree <- read.tree()
-gastro_tree <- read.tree()
+mollusk_tree <- read.tree(sub_chiton.tre)
+annelid_tree <- read.tree(Struck_2011.tre)
+gastro_tree <- read.tree(Giribet_gastro_2019.tre)
 ```
 
 ```{r}
@@ -54,9 +54,9 @@ root_A <- root(annelid_tree, outgroup = 33)
 root_G <- root(gastro_tree, outgroup = 1 )
 root_M <- drop.tip(phy = root_M, tip = c("Lingula_anatina", "Phoronis_australis"))
 root_A <- drop.tip(phy = root_A, tip = c("Lottia_gigantea", "Crassostrea_gigas"))
-root_A_write <- write.tree(root_A, file = "~/Desktop/root_A.tre")
-root_M_write <- write.tree(root_M, file = "~/Desktop/root_M.tre")
-root_G_write <- write.tree(root_G, file = "~/Desktop/root_G.tre")
+root_A_write <- write.tree(root_A, file = "root_A.tre")
+root_M_write <- write.tree(root_M, file = "root_M.tre")
+root_G_write <- write.tree(root_G, file = "root_G.tre")
 plot(root_A)
 root_A$tip.label
 root_M$tip.label
@@ -71,7 +71,7 @@ tr1$tip.label[34]<-"NA"
 tr2$root.edge<-0
 constraint<-paste.tree(tr1,tr2)
 plot(constraint)
-constraint_tree <- write.tree(constraint, file = "~/Desktop/Struck_Giribet_Con.tre")
+constraint_tree <- write.tree(constraint, file = "Struck_Giribet_Con.tre")
 ```
 
 ```{r}
@@ -79,7 +79,7 @@ unroot_con <- unroot(constraint)
 root_con <- root(unroot_con, outgroup = "Bugula_neritina")
 plot(root_con,no.margin=TRUE,edge.width=2,cex=0.7)
 nodelabels(text=1:root_con$Nnode,node=1:root_con$Nnode+Ntip(root_con))
-root_con <- write.tree(root_con, file = "~/Desktop/rooted_constraint")
+root_con <- write.tree(root_con, file = "rooted_constraint")
 root_con$tip.label
 ```
 
@@ -94,7 +94,7 @@ tr1$tip.label[35]<-"NA"
 tr2$root.edge<-0
 constraint<-paste.tree(tr1,tr2)
 plot(constraint)
-constraint_tree <- write.tree(constraint, file = "~/Desktop/Struck_Giribet_Con.tre")
+constraint_tree <- write.tree(constraint, file = "SVG_con.tre")
 ```
 
 
